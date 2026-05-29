@@ -1,89 +1,1162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Felix Leander (FlanderDev) – Portfolio</title>
-<style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- marked.js for Markdown rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+
+  <style>
+    /* ─── Reset & Variables ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #111118;
+      --surface2:  #1a1a24;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #e8ff47;
+      --accent2:   #47c8ff;
+      --fg:        #e8e8f0;
+      --fg-muted:  #7878a0;
+      --font-head: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+      --radius:    6px;
+    }
+
+    html { scroll-behavior: smooth; }
+
     body {
-        font-family: system-ui, sans-serif;
-        background: linear-gradient(135deg, #0d1117, #161b22);
-        color: #e6edf3;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.7;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
-    .container {
-        text-align: center;
-        background: #1c2128;
-        padding: 2rem 3rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        max-width: 420px;
-        animation: fadeIn 1.2s ease forwards;
+
+    /* ─── Noise texture overlay ─────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
     }
-    h1 {
-        font-size: 2rem;
-        margin-bottom: 0.2rem;
-        font-weight: bold;
+
+    /* ─── Scrollbar ─────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 99px; }
+
+    /* ─── Nav ───────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 3rem;
+      background: rgba(10,10,15,0.75);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
     }
-    h2 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
-        animation: pulse 1.5s infinite;
+
+    .nav-logo {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: var(--fg);
+      text-decoration: none;
     }
-    p {
-        font-size: 1rem;
-        color: #8b949e;
-        opacity: 0;
-        animation: fadeIn 1s ease 0.8s forwards;
+
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: var(--fg-muted);
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.2s;
     }
-    a {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 1.2rem;
-        text-decoration: none;
-        color: #fff;
-        background: #238636; /* GitHub green button color */
-        padding: 0.6rem 1.2rem;
-        border-radius: 6px;
-        font-size: 0.95rem;
-        transition: background 0.3s;
-        opacity: 0;
-        animation: fadeIn 1s ease 1.4s forwards;
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ─── Hero ──────────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 8rem 3rem 4rem;
+      position: relative;
+      overflow: hidden;
     }
-    a:hover {
-        background: #2ea043;
+
+    /* Background image layer — activated by JS when background.jpg exists */
+    .hero-bg-img {
+      position: absolute; inset: 0;
+      background-image: url('background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      /* Dark overlay so text stays legible over any photo */
+      mask-image: none;
     }
-    a img {
-        height: 18px;
-        width: 18px;
-        filter: brightness(0) invert(1); /* Makes the logo white */
+    .hero-bg-img::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(10,10,15,0.55) 0%,
+        rgba(10,10,15,0.35) 40%,
+        rgba(10,10,15,0.75) 100%
+      );
     }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    /* When photo is present, strengthen text contrast */
+    #hero.has-bg-img .hero-eyebrow { text-shadow: 0 1px 8px rgba(0,0,0,0.6); }
+    #hero.has-bg-img .hero-name    { text-shadow: 0 2px 20px rgba(0,0,0,0.5); }
+    #hero.has-bg-img .hero-desc    { text-shadow: 0 1px 8px rgba(0,0,0,0.5); }
+
+    .hero-grid-bg {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(232,255,71,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,255,71,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
     }
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); color: #e6edf3; }
-        50% { transform: scale(1.05); color: #f0883e; }
+
+    .hero-glow {
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232,255,71,0.06) 0%, transparent 70%);
+      top: -100px; right: -100px;
+      pointer-events: none;
     }
-</style>
+
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.1s forwards;
+    }
+
+    .hero-name {
+      font-family: var(--font-head);
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.25s forwards;
+    }
+
+    .hero-name .line2 { color: var(--fg-muted); }
+
+    .hero-desc {
+      max-width: 520px;
+      color: var(--fg-muted);
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.4s forwards;
+    }
+
+    .hero-cta {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.55s forwards;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.75rem 1.75rem;
+      border-radius: var(--radius);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0a0f;
+      font-weight: 500;
+    }
+    .btn-primary:hover { background: #f5ff80; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(232,255,71,0.2); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--fg);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--fg-muted); transform: translateY(-1px); }
+
+    /* GitHub badge pill */
+    .github-badge {
+      position: absolute; bottom: 3rem; right: 3rem;
+      display: flex; align-items: center; gap: 0.6rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 0.5rem 1rem;
+      font-size: 12px;
+      color: var(--fg-muted);
+      text-decoration: none;
+      transition: all 0.2s;
+      opacity: 0;
+      animation: fadeUp 0.6s 0.7s forwards;
+    }
+    .github-badge:hover { color: var(--fg); border-color: var(--fg-muted); }
+    .github-badge svg { fill: currentColor; }
+
+    /* ─── Section commons ───────────────────────────────────── */
+    section {
+      padding: 7rem 3rem;
+    }
+
+    .section-label {
+      display: flex; align-items: center; gap: 1rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .section-label-text {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .section-label-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .section-label-num {
+      font-size: 11px;
+      color: var(--fg-muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* ─── README section ────────────────────────────────────── */
+    #readme {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .readme-inner {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* Rendered markdown */
+    #readme-content {
+      min-height: 120px;
+    }
+
+    #readme-content.loading {
+      display: flex; align-items: center; justify-content: center; gap: 0.8rem;
+      color: var(--fg-muted);
+    }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    /* Markdown styles */
+    .md-body {
+      max-width: 760px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .md-body h1, .md-body h2, .md-body h3, .md-body h4 {
+      font-family: var(--font-head);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--fg);
+      margin: 2rem 0 0.75rem;
+      line-height: 1.2;
+    }
+    .md-body h1 { font-size: 2.2rem; margin-top: 0; }
+    .md-body h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; }
+    .md-body h3 { font-size: 1.1rem; color: var(--accent); }
+    .md-body p { color: var(--fg-muted); margin-bottom: 1rem; line-height: 1.8; }
+    .md-body a { color: var(--accent2); text-decoration: none; }
+    .md-body a:hover { text-decoration: underline; }
+    .md-body code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+      font-size: 0.9em;
+      color: var(--accent);
+    }
+    .md-body pre {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 1.25rem 0;
+    }
+    .md-body pre code {
+      background: none; border: none; padding: 0;
+      color: var(--fg);
+    }
+    .md-body blockquote {
+      border-left: 3px solid var(--accent);
+      margin: 1.25rem 0;
+      padding: 0.5rem 1rem;
+      background: var(--surface2);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      color: var(--fg-muted);
+    }
+    .md-body ul, .md-body ol {
+      margin: 0.75rem 0 1rem 1.5rem;
+      color: var(--fg-muted);
+    }
+    .md-body li { margin-bottom: 0.3rem; }
+    .md-body img { max-width: 100%; border-radius: var(--radius); margin: 1rem 0; }
+    .md-body table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; }
+    .md-body th {
+      background: var(--surface2);
+      padding: 0.6rem 1rem;
+      text-align: left;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      color: var(--fg);
+    }
+    .md-body td {
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      color: var(--fg-muted);
+    }
+    .md-body hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    /* ─── Repos section ─────────────────────────────────────── */
+    #repos {
+      background: var(--bg);
+    }
+
+    .repos-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .repos-title {
+      font-family: var(--font-head);
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .repos-count {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--fg-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 0.35rem 0.9rem;
+    }
+
+    /* Filters */
+    .repo-filters {
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+
+    .filter-btn {
+      padding: 0.4rem 0.9rem;
+      border-radius: 99px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--fg-muted);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--accent);
+      color: #0a0a0f;
+      border-color: var(--accent);
+    }
+
+    /* Sort controls */
+    .sort-bar {
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+      margin-bottom: 2rem;
+      align-items: center;
+    }
+    .sort-label { font-size: 11px; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-right: 0.25rem; }
+
+    /* Grid */
+    .repos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 1.75rem;
+    }
+
+    /* Card */
+    .repo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2rem 2rem 1.5rem;
+      display: flex; flex-direction: column;
+      gap: 1rem;
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s, background 0.25s;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+      min-height: 280px;
+    }
+
+    /* Subtle background glow from language colour on hover */
+    .repo-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      opacity: 0;
+      transition: opacity 0.35s;
+      pointer-events: none;
+      background: radial-gradient(ellipse 70% 60% at 50% 0%, var(--card-lang-color, rgba(232,255,71,0.12)), transparent);
+    }
+    .repo-card:hover::after { opacity: 1; }
+
+    /* Top accent bar — animates in on hover */
+    .repo-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--card-lang-color, var(--accent)), var(--accent2));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 1;
+    }
+
+    .repo-card:hover {
+      border-color: rgba(255,255,255,0.14);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    .repo-card:hover::before { transform: scaleX(1); }
+
+    /* Card header row: name + badges */
+    .repo-card-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 0.75rem;
+      position: relative; z-index: 1;
+    }
+
+    .repo-name-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 0; }
+
+    .repo-name {
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--fg);
+      letter-spacing: -0.02em;
+      word-break: break-word;
+      line-height: 1.2;
+      transition: color 0.2s;
+    }
+    .repo-card:hover .repo-name { color: #fff; }
+
+    .repo-full-name {
+      font-size: 11px;
+      color: var(--fg-muted);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Badge cluster top-right */
+    .repo-badges { display: flex; gap: 0.35rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+
+    .badge {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 99px;
+      padding: 0.2rem 0.55rem;
+      white-space: nowrap;
+      border: 1px solid;
+    }
+    .badge-fork    { color: var(--fg-muted);  background: var(--surface2); border-color: var(--border); }
+    .badge-private { color: #ffbb47;           background: rgba(255,187,71,0.08); border-color: rgba(255,187,71,0.25); }
+    .badge-public  { color: #69db7c;           background: rgba(105,219,124,0.08); border-color: rgba(105,219,124,0.2); }
+    .badge-template{ color: var(--accent2);    background: rgba(71,200,255,0.07); border-color: rgba(71,200,255,0.2); }
+
+    /* Description */
+    .repo-desc {
+      font-size: 13.5px;
+      color: var(--fg-muted);
+      line-height: 1.7;
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      position: relative; z-index: 1;
+    }
+
+    /* Topics */
+    .repo-topics { display: flex; gap: 0.4rem; flex-wrap: wrap; position: relative; z-index: 1; }
+
+    .topic-tag {
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--accent2);
+      background: rgba(71, 200, 255, 0.07);
+      border: 1px solid rgba(71,200,255,0.15);
+      border-radius: 99px;
+      padding: 0.25rem 0.6rem;
+      transition: background 0.18s, border-color 0.18s;
+    }
+    .repo-card:hover .topic-tag {
+      background: rgba(71,200,255,0.12);
+      border-color: rgba(71,200,255,0.28);
+    }
+
+    /* Language bar — coloured strip */
+    .repo-lang-bar {
+      height: 4px;
+      border-radius: 99px;
+      background: var(--surface2);
+      overflow: hidden;
+      position: relative; z-index: 1;
+    }
+    .repo-lang-bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      opacity: 0.7;
+      transition: opacity 0.25s;
+    }
+    .repo-card:hover .repo-lang-bar-fill { opacity: 1; }
+
+    /* Thin divider */
+    .repo-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 -2rem;
+      position: relative; z-index: 1;
+    }
+
+    /* Stats row */
+    .repo-stats {
+      display: flex; align-items: center; gap: 1.25rem;
+      flex-wrap: wrap;
+      position: relative; z-index: 1;
+    }
+
+    .repo-stat {
+      display: flex; align-items: center; gap: 0.35rem;
+      font-size: 12px;
+      color: var(--fg-muted);
+      transition: color 0.2s;
+    }
+    .repo-card:hover .repo-stat { color: #a0a0c0; }
+
+    .repo-stat svg { flex-shrink: 0; opacity: 0.7; }
+
+    .repo-lang {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 12px;
+      color: var(--fg-muted);
+    }
+
+    .lang-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 6px currentColor;
+    }
+
+    /* Card footer: updated + open link */
+    .repo-card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem;
+      margin-top: auto;
+      position: relative; z-index: 1;
+    }
+
+    .repo-updated {
+      font-size: 11px;
+      color: var(--fg-muted);
+      letter-spacing: 0.03em;
+    }
+
+    .repo-open-link {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      opacity: 0;
+      transform: translateX(-6px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .repo-card:hover .repo-open-link { opacity: 1; transform: translateX(0); }
+
+    /* Empty / error state */
+    .repos-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--fg-muted);
+    }
+
+    .repos-empty p { margin-top: 0.5rem; font-size: 13px; }
+
+    /* ─── Footer ────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 3rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+      color: var(--fg-muted);
+      font-size: 12px;
+    }
+
+    footer a { color: var(--fg-muted); text-decoration: none; }
+    footer a:hover { color: var(--accent); }
+    .footer-note { letter-spacing: 0.05em; }
+
+    /* ─── Animations ────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ─── Error state ───────────────────────────────────────── */
+    .error-box {
+      background: rgba(255,80,80,0.07);
+      border: 1px solid rgba(255,80,80,0.2);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      color: #ff8080;
+      font-size: 13px;
+    }
+
+    /* ─── Responsive ────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      nav { padding: 1rem 1.25rem; }
+      .nav-links { gap: 1.25rem; }
+      #hero, section, footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+      .github-badge { display: none; }
+      .repos-grid { grid-template-columns: 1fr; }
+      .repo-card { padding: 1.5rem 1.25rem; min-height: 240px; }
+      .repo-divider { margin: 0 -1.25rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Felix Leander (FlanderDev)</h1>
-<img width="90%" height="90%" src="https://github.com/user-attachments/assets/e045f578-35b8-4694-8f95-e9e79ccc9e85" alt="GitHub-profile Logo">
-        <h2>🚧 Work in Progress</h2>
-        <p>This is my portfolio site.<br>
-        It’s currently under construction — check back soon!</p>
-        <a href="https://github.com/FlanderDev" target="_blank">
-            <img src="https://github.com/user-attachments/assets/e045f578-35b8-4694-8f95-e9e79ccc9e85" alt="GitHub-profile Logo">
-            Visit my GitHub
-        </a>
+
+  <!-- ─── Nav ─────────────────────────────────────────────── -->
+  <nav>
+    <a href="#hero" class="nav-logo">dev<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="#readme">About</a></li>
+      <li><a href="#repos">Repos</a></li>
+    </ul>
+  </nav>
+
+  <!-- ─── Hero ─────────────────────────────────────────────── -->
+  <section id="hero">
+    <div class="hero-bg-img" id="hero-bg-img" style="display:none"></div>
+    <div class="hero-grid-bg" id="hero-grid-bg"></div>
+    <div class="hero-glow" id="hero-glow"></div>
+
+    <p class="hero-eyebrow">Software Developer · Open Source</p>
+    <h1 class="hero-name">
+      <span id="hero-login">Loading…</span><br>
+      <span class="line2">builds things.</span>
+    </h1>
+    <p class="hero-desc" id="hero-bio">Software developer. Open source enthusiast.</p>
+    <div class="hero-cta">
+      <a href="#readme" class="btn btn-primary">Read about me</a>
+      <a href="#repos" class="btn btn-outline">View repositories</a>
     </div>
+
+    <a id="github-badge-link" href="https://github.com" target="_blank" rel="noopener" class="github-badge">
+      <svg width="16" height="16" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      View on GitHub
+    </a>
+  </section>
+
+  <!-- ─── README ─────────────────────────────────────────── -->
+  <section id="readme">
+    <div class="section-label">
+      <span class="section-label-text">01 · About</span>
+      <span class="section-label-line"></span>
+      <span class="section-label-num">README.md</span>
+    </div>
+
+    <div class="readme-inner">
+      <div id="readme-content">
+        <div class="loading"><div class="spinner"></div> Fetching README…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Repos ──────────────────────────────────────────── -->
+  <section id="repos">
+    <div class="section-label">
+      <span class="section-label-text">02 · Work</span>
+      <span class="section-label-line"></span>
+      <span class="section-label-num">Repositories</span>
+    </div>
+
+    <div class="repos-header">
+      <h2 class="repos-title">Open Source</h2>
+      <span class="repos-count" id="repos-count">0 repos</span>
+    </div>
+
+    <div class="repo-filters" id="lang-filters">
+      <button class="filter-btn active" data-lang="all" onclick="filterRepos('all', this)">All</button>
+    </div>
+
+    <div class="sort-bar">
+      <span class="sort-label">Sort by</span>
+      <button class="filter-btn active" data-sort="updated" onclick="sortRepos('updated', this)">Recently updated</button>
+      <button class="filter-btn" data-sort="stars" onclick="sortRepos('stars', this)">Stars</button>
+      <button class="filter-btn" data-sort="name" onclick="sortRepos('name', this)">Name</button>
+    </div>
+
+    <div class="repos-grid" id="repos-grid">
+      <div class="repos-empty">
+        <p>Load a GitHub profile above to see repositories here.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Footer ────────────────────────────────────────── -->
+  <footer>
+    <span class="footer-note">Built with GitHub API · No tracking · No cookies</span>
+    <a id="footer-gh-link" href="https://github.com" target="_blank" rel="noopener">github.com</a>
+  </footer>
+
+  <script>
+    /* ─── State ──────────────────────────────────────────── */
+    let allRepos = [];
+    let activeFilter = 'all';
+    let activeSort = 'updated';
+
+    /* ─── Resolve GitHub username ────────────────────────────
+     * Priority:
+     *  1. ?user=  or  ?username=  query param  (override / preview)
+     *  2. Subdomain of the current hostname
+     *     – username.github.io   → "username"
+     *     – username.example.com → "username"  (custom domain)
+     *  3. Nothing resolvable → show a friendly error
+     * ────────────────────────────────────────────────────── */
+    function resolveUsername() {
+      // 1. Query-param override
+      const params = new URLSearchParams(location.search);
+      const qp = params.get('user') || params.get('username');
+      if (qp && qp.trim()) return qp.trim();
+
+      // 2. Subdomain
+      const hostname = location.hostname; // e.g. "torvalds.github.io"
+      const parts = hostname.split('.');
+      // Need at least two parts and the first segment must not be "www" or blank
+      if (parts.length >= 2 && parts[0] && parts[0] !== 'www') {
+        return parts[0];
+      }
+
+      return null;
+    }
+
+    /* ─── Language colours (GitHub palette) ─────────────── */
+    const LANG_COLORS = {
+      JavaScript: '#f1e05a', TypeScript: '#3178c6', Python: '#3572A5',
+      Rust: '#dea584', Go: '#00ADD8', Java: '#b07219', 'C++': '#f34b7d',
+      C: '#555555', 'C#': '#178600', Ruby: '#701516', PHP: '#4F5D95',
+      Swift: '#F05138', Kotlin: '#A97BFF', Dart: '#00B4AB', Shell: '#89e051',
+      HTML: '#e34c26', CSS: '#563d7c', Vue: '#41b883', Svelte: '#ff3e00',
+      Haskell: '#5e5086', Elixir: '#6e4a7e', Scala: '#c22d40', Lua: '#000080',
+      R: '#198CE7', MATLAB: '#e16737', Dockerfile: '#384d54',
+    };
+
+    function langColor(lang) {
+      return LANG_COLORS[lang] || '#8888aa';
+    }
+
+    /* ─── Bootstrap ──────────────────────────────────────── */
+    async function bootstrap() {
+      const username = resolveUsername();
+
+      if (!username) {
+        // No username could be determined — show a clear explanation
+        document.getElementById('hero-login').textContent = 'No user found';
+        document.getElementById('hero-bio').textContent =
+          'Could not determine a GitHub username from the URL. ' +
+          'Host this page on username.github.io or append ?user=yourname to the URL.';
+
+        document.getElementById('readme-content').className = '';
+        document.getElementById('readme-content').innerHTML =
+          `<div class="error-box">
+            No GitHub username detected.<br>
+            Deploy to <code>username.github.io</code> or open this page as
+            <code>yourfile.html?user=torvalds</code>.
+          </div>`;
+
+        document.getElementById('repos-grid').innerHTML =
+          '<div class="repos-empty"><p>No username — nothing to load.</p></div>';
+        return;
+      }
+
+      await Promise.all([loadUser(username), loadReadme(username), loadRepos(username)]);
+    }
+
+    /* ─── User profile ───────────────────────────────────── */
+    async function loadUser(username) {
+      try {
+        const res = await fetch(`https://api.github.com/users/${username}`);
+        if (!res.ok) throw new Error('User not found');
+        const user = await res.json();
+
+        const displayName = user.name || user.login;
+        document.getElementById('hero-login').textContent = displayName;
+        document.title = `${displayName} · Portfolio`;
+
+        if (user.bio) {
+          document.getElementById('hero-bio').textContent = user.bio;
+        }
+
+        const ghLink = `https://github.com/${user.login}`;
+        document.getElementById('github-badge-link').href = ghLink;
+        document.getElementById('footer-gh-link').href = ghLink;
+        document.getElementById('footer-gh-link').textContent = `github.com/${user.login}`;
+      } catch (err) {
+        document.getElementById('hero-login').textContent = username;
+      }
+    }
+
+    /* ─── README ─────────────────────────────────────────── */
+    async function loadReadme(username) {
+      const el = document.getElementById('readme-content');
+      el.innerHTML = '<div class="loading"><div class="spinner"></div> Fetching README…</div>';
+      el.className = 'loading';
+
+      try {
+        // Try the user's special username/username profile repo
+        const urls = [
+          `https://api.github.com/repos/${username}/${username}/readme`,
+          `https://api.github.com/repos/${username}/${username.toLowerCase()}/readme`,
+        ];
+
+        let raw = null;
+        for (const url of urls) {
+          const res = await fetch(url, { headers: { Accept: 'application/vnd.github.raw' } });
+          if (res.ok) { raw = await res.text(); break; }
+        }
+
+        el.className = '';
+
+        if (!raw) {
+          el.innerHTML = `<div class="error-box">No profile README found. Create a repository named <code>${username}/${username}</code> with a README.md to display it here.</div>`;
+          return;
+        }
+
+        const html = marked.parse(raw, { breaks: true, gfm: true });
+        el.innerHTML = `<div class="md-body">${html}</div>`;
+      } catch (err) {
+        el.className = '';
+        el.innerHTML = `<div class="error-box">Failed to load README: ${err.message}</div>`;
+      }
+    }
+
+    /* ─── Repos ──────────────────────────────────────────── */
+    async function loadRepos(username) {
+      const grid = document.getElementById('repos-grid');
+      grid.innerHTML = '<div class="repos-empty"><div class="spinner" style="margin:0 auto 1rem"></div><p>Fetching repositories…</p></div>';
+
+      try {
+        let page = 1, repos = [];
+        while (page <= 3) {
+          const res = await fetch(
+            `https://api.github.com/users/${username}/repos?per_page=100&page=${page}&sort=updated&type=owner`
+          );
+          if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
+          const data = await res.json();
+          repos = repos.concat(data);
+          if (data.length < 100) break;
+          page++;
+        }
+
+        allRepos = repos;
+        buildLangFilters(repos);
+        renderRepos();
+      } catch (err) {
+        grid.innerHTML = `<div class="repos-empty"><div class="error-box">Failed to load repositories: ${err.message}</div></div>`;
+      }
+    }
+
+    /* ─── Filters & Sort ─────────────────────────────────── */
+    function buildLangFilters(repos) {
+      const langs = [...new Set(repos.map(r => r.language).filter(Boolean))].sort();
+      const bar = document.getElementById('lang-filters');
+      bar.innerHTML = `<button class="filter-btn active" data-lang="all" onclick="filterRepos('all', this)">All</button>`;
+      langs.forEach(lang => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.dataset.lang = lang;
+        btn.textContent = lang;
+        btn.onclick = function() { filterRepos(lang, this); };
+        bar.appendChild(btn);
+      });
+    }
+
+    function filterRepos(lang, btn) {
+      activeFilter = lang;
+      document.querySelectorAll('#lang-filters .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderRepos();
+    }
+
+    function sortRepos(by, btn) {
+      activeSort = by;
+      document.querySelectorAll('.sort-bar .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderRepos();
+    }
+
+    function renderRepos() {
+      let repos = allRepos.filter(r => !r.archived);
+
+      if (activeFilter !== 'all') {
+        repos = repos.filter(r => r.language === activeFilter);
+      }
+
+      repos = [...repos].sort((a, b) => {
+        if (activeSort === 'stars') return b.stargazers_count - a.stargazers_count;
+        if (activeSort === 'name') return a.name.localeCompare(b.name);
+        return new Date(b.updated_at) - new Date(a.updated_at);
+      });
+
+      document.getElementById('repos-count').textContent = `${repos.length} repo${repos.length !== 1 ? 's' : ''}`;
+
+      const grid = document.getElementById('repos-grid');
+      if (repos.length === 0) {
+        grid.innerHTML = '<div class="repos-empty"><p>No repositories match the current filter.</p></div>';
+        return;
+      }
+
+      grid.innerHTML = repos.map(repo => repoCard(repo)).join('');
+    }
+
+    function repoCard(repo) {
+      // Description
+      const desc = repo.description
+        ? `<p class="repo-desc">${escHtml(repo.description)}</p>`
+        : `<p class="repo-desc" style="font-style:italic;opacity:0.4">No description provided.</p>`;
+
+      // Badges (visibility + fork + template)
+      const badges = [
+        repo.fork     ? `<span class="badge badge-fork">Fork</span>` : '',
+        repo.is_template ? `<span class="badge badge-template">Template</span>` : '',
+        repo.private  ? `<span class="badge badge-private">Private</span>`
+                      : `<span class="badge badge-public">Public</span>`,
+      ].filter(Boolean).join('');
+
+      // Topics
+      const topics = repo.topics && repo.topics.length
+        ? `<div class="repo-topics">${repo.topics.slice(0, 6).map(t => `<span class="topic-tag">${escHtml(t)}</span>`).join('')}</div>`
+        : '';
+
+      // Language with colour dot
+      const langColor_ = repo.language ? langColor(repo.language) : null;
+      const langEl = repo.language
+        ? `<span class="repo-lang"><span class="lang-dot" style="background:${langColor_}"></span>${escHtml(repo.language)}</span>`
+        : '';
+
+      // Language bar (visual accent, fills proportional to a max of ~500 files as proxy)
+      const langBar = repo.language
+        ? `<div class="repo-lang-bar"><div class="repo-lang-bar-fill" style="width:100%;background:${langColor_}"></div></div>`
+        : '';
+
+      // Stars
+      const stars = `<span class="repo-stat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="${repo.stargazers_count > 0 ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>${fmtNum(repo.stargazers_count)}</span>`;
+
+      // Forks
+      const forks = `<span class="repo-stat">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="7" cy="4" r="2"/><circle cx="17" cy="4" r="2"/><circle cx="12" cy="20" r="2"/>
+          <path d="M7 6v2a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3V6M12 11v7"/>
+        </svg>${fmtNum(repo.forks_count)}</span>`;
+
+      // Open issues
+      const issues = repo.open_issues_count > 0
+        ? `<span class="repo-stat">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>${fmtNum(repo.open_issues_count)} issue${repo.open_issues_count !== 1 ? 's' : ''}</span>`
+        : '';
+
+      // Watchers
+      const watchers = repo.watchers_count > 0
+        ? `<span class="repo-stat">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>${fmtNum(repo.watchers_count)}</span>`
+        : '';
+
+      // License
+      const license = repo.license
+        ? `<span class="repo-stat">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>${escHtml(repo.license.spdx_id !== 'NOASSERTION' ? repo.license.spdx_id : repo.license.name)}</span>`
+        : '';
+
+      // Dates
+      const updatedAgo = timeAgo(new Date(repo.updated_at));
+      const pushedAgo  = repo.pushed_at ? timeAgo(new Date(repo.pushed_at)) : null;
+      const dateLabel  = pushedAgo
+        ? `Pushed ${pushedAgo}`
+        : `Updated ${updatedAgo}`;
+
+      // Size
+      const sizeLabel = repo.size > 0
+        ? `<span class="repo-stat">${fmtSize(repo.size)}</span>`
+        : '';
+
+      return `
+        <a class="repo-card" href="${repo.html_url}" target="_blank" rel="noopener"
+           style="${langColor_ ? `--card-lang-color:${langColor_}33` : ''}">
+          <div class="repo-card-header">
+            <div class="repo-name-group">
+              <span class="repo-name">${escHtml(repo.name)}</span>
+              <span class="repo-full-name">${escHtml(repo.full_name)}</span>
+            </div>
+            <div class="repo-badges">${badges}</div>
+          </div>
+
+          ${desc}
+          ${topics}
+          ${langBar}
+
+          <div class="repo-divider"></div>
+
+          <div class="repo-stats">
+            ${langEl}
+            ${stars}
+            ${forks}
+            ${issues}
+            ${watchers}
+            ${license}
+            ${sizeLabel}
+          </div>
+
+          <div class="repo-card-footer">
+            <span class="repo-updated">${dateLabel}</span>
+            <span class="repo-open-link">View on GitHub
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </span>
+          </div>
+        </a>`;
+    }
+
+    /* ─── Utilities ──────────────────────────────────────── */
+    function escHtml(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function fmtNum(n) {
+      return n >= 1000 ? (n/1000).toFixed(1) + 'k' : String(n);
+    }
+
+    function fmtSize(kb) {
+      if (kb < 1024) return kb + ' KB';
+      return (kb / 1024).toFixed(1) + ' MB';
+    }
+
+    function timeAgo(date) {
+      const sec = (Date.now() - date) / 1000;
+      if (sec < 60) return 'just now';
+      if (sec < 3600) return `${Math.floor(sec/60)}m ago`;
+      if (sec < 86400) return `${Math.floor(sec/3600)}h ago`;
+      if (sec < 2592000) return `${Math.floor(sec/86400)}d ago`;
+      if (sec < 31536000) return `${Math.floor(sec/2592000)}mo ago`;
+      return `${Math.floor(sec/31536000)}y ago`;
+    }
+
+    /* ─── background.jpg probe ───────────────────────────────
+     * Tries to load background.jpg. If it resolves (HTTP 200 and
+     * the browser can decode it as an image), activate it on the
+     * hero. Falls back silently — grid + glow stay unchanged.
+     * ────────────────────────────────────────────────────── */
+    (function probeBgImage() {
+      const img = new Image();
+      img.onload = function() {
+        const hero    = document.getElementById('hero');
+        const bgLayer = document.getElementById('hero-bg-img');
+        const grid    = document.getElementById('hero-grid-bg');
+        const glow    = document.getElementById('hero-glow');
+
+        // Show the photo layer
+        bgLayer.style.display = '';
+        // Tone down the grid overlay — it clashes with a real photo
+        grid.style.opacity = '0.3';
+        // Hide the accent glow blob — photo provides its own atmosphere
+        glow.style.display = 'none';
+        // Mark the section so CSS can tighten text contrast
+        hero.classList.add('has-bg-img');
+      };
+      // onerror: do nothing — default styles remain
+      img.src = 'background.jpg';
+    })();
+
+    /* ─── Kick off ───────────────────────────────────────── */
+    bootstrap();
+  </script>
 </body>
 </html>
