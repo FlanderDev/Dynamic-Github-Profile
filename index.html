@@ -99,10 +99,10 @@
       overflow: hidden;
     }
 
-    /* Background image layer — activated by JS when background.jpg exists */
+    /* Background image layer — activated by JS when the image resolves */
     .hero-bg-img {
       position: absolute; inset: 0;
-      background-image: url('background.jpg');
+      /* background-image is set dynamically by JS */
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -1129,12 +1129,26 @@
       return `${Math.floor(sec/31536000)}y ago`;
     }
 
-    /* ─── background.jpg probe ───────────────────────────────
-     * Tries to load background.jpg. If it resolves (HTTP 200 and
-     * the browser can decode it as an image), activate it on the
-     * hero. Falls back silently — grid + glow stay unchanged.
+    /* ─── Hero background probe ──────────────────────────────
+     * Resolution order:
+     *  1. ?bg=filename  — any file in the bg/ folder, e.g. ?bg=city.jpg
+     *                     (bare filename; the bg/ prefix is added automatically)
+     *  2. bg/background.png — default when no ?bg= param is present
+     *
+     * If the resolved file loads successfully it is applied; otherwise
+     * the default dark/grid hero remains unchanged.
      * ────────────────────────────────────────────────────── */
     (function probeBgImage() {
+      const params   = new URLSearchParams(location.search);
+      const bgParam  = params.get('bg');
+
+      // Sanitise: strip any path separators so ?bg=../../etc/passwd is ignored
+      const filename = bgParam
+        ? bgParam.replace(/[/\\]/g, '').trim() || 'background.png'
+        : 'background.png';
+
+      const src = `bg/${filename}`;
+
       const img = new Image();
       img.onload = function() {
         const hero    = document.getElementById('hero');
@@ -1142,17 +1156,14 @@
         const grid    = document.getElementById('hero-grid-bg');
         const glow    = document.getElementById('hero-glow');
 
-        // Show the photo layer
+        bgLayer.style.backgroundImage = `url('${src}')`;
         bgLayer.style.display = '';
-        // Tone down the grid overlay — it clashes with a real photo
-        grid.style.opacity = '0.3';
-        // Hide the accent glow blob — photo provides its own atmosphere
-        glow.style.display = 'none';
-        // Mark the section so CSS can tighten text contrast
+        grid.style.opacity    = '0.3';
+        glow.style.display    = 'none';
         hero.classList.add('has-bg-img');
       };
-      // onerror: do nothing — default styles remain
-      img.src = 'background.jpg';
+      // onerror: silent — default styles remain untouched
+      img.src = src;
     })();
 
     /* ─── Kick off ───────────────────────────────────────── */
